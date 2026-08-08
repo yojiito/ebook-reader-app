@@ -584,7 +584,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
 
   const [isSmartAutoFlow, setIsSmartAutoFlow] = useState(true);
   const [isHalfWidthPacking, setIsHalfWidthPacking] = useState(true);
-  const [isTwoPageSpread, setIsTwoPageSpread] = useState(true);
+  const [isTwoPageSpread, setIsTwoPageSpread] = useState(() => window.innerWidth > 768);
   
   const [isLiveEditMode, setIsLiveEditMode] = useState(false);
   const [liveEditingText, setLiveEditingText] = useState(rawText);
