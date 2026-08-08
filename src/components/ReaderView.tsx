@@ -585,6 +585,13 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
   const [isSmartAutoFlow, setIsSmartAutoFlow] = useState(true);
   const [isHalfWidthPacking, setIsHalfWidthPacking] = useState(true);
   const [isTwoPageSpread, setIsTwoPageSpread] = useState(() => window.innerWidth > 768);
+  const [viewportWidth, setViewportWidth] = useState(() => window.innerWidth);
+
+  useEffect(() => {
+    const handleResize = () => setViewportWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   
   const [isLiveEditMode, setIsLiveEditMode] = useState(false);
   const [liveEditingText, setLiveEditingText] = useState(rawText);
@@ -619,11 +626,25 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
 
   const FIXED_PAPER_HEIGHT = 440;
   const INNER_TEXT_HEIGHT = 376;
+  
+  // コンテナの最大幅に基づく実効幅の動的計算
+  const singleMaxWidth = Math.min(viewportWidth, 480);
+  const spreadMaxWidth = Math.min(viewportWidth, 920) / 2;
+  const containerMaxWidth = isTwoPageSpread ? spreadMaxWidth : singleMaxWidth;
+  
+  // 物理パディング計算: 
+  // reader-paper-viewの外側padding(左右30px = 60px) + 内側テキストdivのpadding(左右16px = 32px) = 合計92px
+  // これを引かないと、物理的に入らない文字まで詰め込んでしまい、overflow: hiddenで消えてしまう
+  const TOTAL_HORIZONTAL_PADDING = 92;
+  const INNER_TEXT_WIDTH = Math.max(100, containerMaxWidth - TOTAL_HORIZONTAL_PADDING);
 
   // 物理上限：UIボタンの上限に使用し、表示値もこの範囲内に収める（行間・文字間隔を考慮して 1.15倍で計算）
   const physicalMaxCharsUI = Math.max(6, Math.floor(INNER_TEXT_HEIGHT / Math.max(10, fontSize * 1.15)));
-  // 実効文字数（物理上限でクランプされた実際の値）
+  const physicalMaxLinesUI = Math.max(4, Math.floor(INNER_TEXT_WIDTH / Math.max(10, fontSize * 1.15)));
+  
+  // 実効文字数・行数（物理上限でクランプされた実際の値）
   const effectiveCharsPerLine = Math.min(charsPerLine, physicalMaxCharsUI);
+  const effectiveLinesPerPage = Math.min(linesPerPage, physicalMaxLinesUI);
 
   const paperTheme: PaperTheme = typography.paperTheme || 'bunkobon';
   const fontTheme: FontTheme = typography.fontTheme || 'shippori';
@@ -657,8 +678,8 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
 
   // 🎯【文字サイズ調整 100%ダイレクト反映】：fontSizeがそのまま紙面上に大きく・小さく直接適用される
   const dynamicLineHeight = useMemo(() => {
-    return Math.max(1.15, Math.min(2.4, INNER_TEXT_HEIGHT / (linesPerPage * fontSize)));
-  }, [linesPerPage, fontSize]);
+    return Math.max(1.15, Math.min(2.4, INNER_TEXT_WIDTH / (effectiveLinesPerPage * fontSize)));
+  }, [effectiveLinesPerPage, fontSize]);
 
   useEffect(() => {
     setLiveEditingText(rawText);
@@ -666,8 +687,8 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
 
   // 1. レンダリング用の全計算済みページ singlePages を生成（startIndex追跡）
   const singlePages = useMemo(() => {
-    return paginateTextFixedViewportAllFeatures(liveEditingText, charsPerLine, linesPerPage, fontSize, isSmartAutoFlow, headingStyle, INNER_TEXT_HEIGHT);
-  }, [liveEditingText, charsPerLine, linesPerPage, fontSize, isSmartAutoFlow, headingStyle]);
+    return paginateTextFixedViewportAllFeatures(liveEditingText, effectiveCharsPerLine, effectiveLinesPerPage, fontSize, isSmartAutoFlow, headingStyle, INNER_TEXT_HEIGHT);
+  }, [liveEditingText, effectiveCharsPerLine, effectiveLinesPerPage, fontSize, isSmartAutoFlow, headingStyle]);
 
   // 🧹【純粋本文のみ抽出】：ダミーを完全排除したリアル本文連動目次エンジン
   const computedTocItems = useMemo(() => {
@@ -1398,12 +1419,20 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
             >
               -
             </button>
-            <span style={{ fontSize: '12px', fontWeight: '900', color: '#FDE047', minWidth: '28px', textAlign: 'center' }}>
-              {linesPerPage}行
+            <span 
+              title={linesPerPage > physicalMaxLinesUI ? `幅の物理限界(${Math.floor(INNER_TEXT_WIDTH)}px)のため、実効表示は ${physicalMaxLinesUI} 行に制限されています` : ''}
+              style={{ fontSize: '12px', fontWeight: '900', color: linesPerPage > physicalMaxLinesUI ? '#F87171' : '#FDE047', minWidth: '32px', textAlign: 'center', cursor: linesPerPage > physicalMaxLinesUI ? 'help' : 'default' }}
+            >
+              {linesPerPage}{linesPerPage > physicalMaxLinesUI ? `👉${physicalMaxLinesUI}` : ''}行
             </span>
             <button
-              onClick={() => setTypography(prev => ({ ...prev, linesPerPage: Math.min(25, linesPerPage + 1) }))}
-              style={{ backgroundColor: '#1E293B', color: '#FFF', border: '1px solid #4F46E5', borderRadius: '4px', width: '20px', height: '20px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              onClick={() => {
+                if (linesPerPage >= physicalMaxLinesUI) {
+                  triggerEditNotice(`⚠️ これ以上増やすとコンテナ幅（${Math.floor(INNER_TEXT_WIDTH)}px）を物理的に超えるため、実効行数は上がりません`);
+                }
+                setTypography(prev => ({ ...prev, linesPerPage: Math.min(40, linesPerPage + 1) }));
+              }}
+              style={{ backgroundColor: '#1E293B', color: '#FFF', border: '1px solid #4F46E5', borderRadius: '4px', width: '20px', height: '20px', fontSize: '11px', fontWeight: 'bold', cursor: linesPerPage >= physicalMaxLinesUI ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
               +
             </button>
