@@ -586,9 +586,13 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
   const [isHalfWidthPacking, setIsHalfWidthPacking] = useState(true);
   const [isTwoPageSpread, setIsTwoPageSpread] = useState(() => window.innerWidth > 768);
   const [viewportWidth, setViewportWidth] = useState(() => window.innerWidth);
+  const [viewportHeight, setViewportHeight] = useState(() => window.innerHeight);
 
   useEffect(() => {
-    const handleResize = () => setViewportWidth(window.innerWidth);
+    const handleResize = () => {
+      setViewportWidth(window.innerWidth);
+      setViewportHeight(window.innerHeight);
+    };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -624,22 +628,30 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
   const linesPerPage = typography.linesPerPage || 12;
   const headingStyle = typography.headingStyle || 'tobira';
 
-  const FIXED_PAPER_HEIGHT = 440;
-  const INNER_TEXT_HEIGHT = 376;
-  
   // コンテナの最大幅に基づく実効幅の動的計算
   const singleMaxWidth = Math.min(viewportWidth, 480);
   const spreadMaxWidth = Math.min(viewportWidth, 920) / 2;
   const containerMaxWidth = isTwoPageSpread ? spreadMaxWidth : singleMaxWidth;
-  
+
+  // 画面の高さに応じてキンドルサイズの高さを動的に計算（幅の4/3倍をベースに、画面高さの80%を超えないようにする）
+  // 読書体験を高めるため、自然な縦長のKindleライクな比率にする
+  const IDEAL_HEIGHT = Math.min(viewportHeight * 0.85, containerMaxWidth * (4 / 3));
+  const FIXED_PAPER_HEIGHT = Math.max(440, IDEAL_HEIGHT); // 最低440pxは確保
+
   // 物理パディング計算: 
   // reader-paper-viewの外側padding(左右30px = 60px) + 内側テキストdivのpadding(左右16px = 32px) = 合計92px
-  // これを引かないと、物理的に入らない文字まで詰め込んでしまい、overflow: hiddenで消えてしまう
   const TOTAL_HORIZONTAL_PADDING = 92;
-  const INNER_TEXT_WIDTH = Math.max(100, containerMaxWidth - TOTAL_HORIZONTAL_PADDING);
+  // 垂直方向のパディング合計:
+  // .reader-paper-view の padding (上下24px = 48px) + 内側テキストdiv の padding (上下24px = 48px) = 96px
+  const TOTAL_VERTICAL_PADDING = 96;
 
-  // 物理上限：UIボタンの上限に使用し、表示値もこの範囲内に収める（行間・文字間隔を考慮して 1.15倍で計算）
-  const physicalMaxCharsUI = Math.max(6, Math.floor(INNER_TEXT_HEIGHT / Math.max(10, fontSize * 1.15)));
+  const INNER_TEXT_WIDTH = Math.max(100, containerMaxWidth - TOTAL_HORIZONTAL_PADDING);
+  const INNER_TEXT_HEIGHT = Math.max(100, FIXED_PAPER_HEIGHT - TOTAL_VERTICAL_PADDING);
+
+  // 物理上限の正確な計算
+  // 縦書きの場合、縦方向の文字間隔は lineHeight に影響されず、fontSize にのみ依存する (0.01em = 1.01)
+  const physicalMaxCharsUI = Math.max(6, Math.floor(INNER_TEXT_HEIGHT / Math.max(10, fontSize * 1.02)));
+  // 横方向の行間隔は 1.15 の lineHeight ベースで計算
   const physicalMaxLinesUI = Math.max(4, Math.floor(INNER_TEXT_WIDTH / Math.max(10, fontSize * 1.15)));
   
   // 実効文字数・行数（シンプルUIのため、常に画面に収まる最大値を自動適用＝「お任せレイアウト」）
@@ -688,7 +700,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
   // 1. レンダリング用の全計算済みページ singlePages を生成（startIndex追跡）
   const singlePages = useMemo(() => {
     return paginateTextFixedViewportAllFeatures(liveEditingText, effectiveCharsPerLine, effectiveLinesPerPage, fontSize, isSmartAutoFlow, headingStyle, INNER_TEXT_HEIGHT);
-  }, [liveEditingText, effectiveCharsPerLine, effectiveLinesPerPage, fontSize, isSmartAutoFlow, headingStyle]);
+  }, [liveEditingText, effectiveCharsPerLine, effectiveLinesPerPage, fontSize, isSmartAutoFlow, headingStyle, INNER_TEXT_HEIGHT]);
 
   // 🧹【純粋本文のみ抽出】：ダミーを完全排除したリアル本文連動目次エンジン
   const computedTocItems = useMemo(() => {
