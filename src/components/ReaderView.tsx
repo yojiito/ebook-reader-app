@@ -337,8 +337,8 @@ const paginateTextFixedViewportAllFeatures = (
 ): { content: string; isTobira?: boolean; startIndex: number }[] => {
   if (!text || text.trim().length === 0) return [{ content: '（本文が空です）', startIndex: 0 }];
 
-  // 🛡️ 物理上限計算：ページ有効高さ ÷ フォントサイズ
-  const physicalMaxChars = Math.max(6, Math.floor(paperHeightPx / Math.max(10, fontSize)));
+  // 🛡️ 物理上限計算：ページ有効高さ ÷ フォントサイズ（1.15倍マージン）
+  const physicalMaxChars = Math.max(6, Math.floor(paperHeightPx / Math.max(10, fontSize * 1.15)));
   const targetChars = Math.min(Math.max(6, charsPerLine), physicalMaxChars);
   const targetLines = Math.max(4, linesPerPage);
 
@@ -617,13 +617,11 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
   const linesPerPage = typography.linesPerPage || 12;
   const headingStyle = typography.headingStyle || 'tobira';
 
-  // 1行の文字数とフォントサイズから、必要な高さを動的に計算する（letter-spacing 0.04emを考慮）
-  const INNER_TEXT_HEIGHT = charsPerLine * (fontSize * 1.05);
-  // テキスト領域に上下のパディング（24px * 2 = 48px）を足したものが紙の高さ（最低440pxは確保）
-  const FIXED_PAPER_HEIGHT = Math.max(440, INNER_TEXT_HEIGHT + 48);
+  const FIXED_PAPER_HEIGHT = 440;
+  const INNER_TEXT_HEIGHT = 376;
 
-  // 物理上限：UIボタンの上限に使用し、表示値もこの範囲内に収める
-  const physicalMaxCharsUI = Math.max(6, Math.floor(INNER_TEXT_HEIGHT / Math.max(10, fontSize)));
+  // 物理上限：UIボタンの上限に使用し、表示値もこの範囲内に収める（行間・文字間隔を考慮して 1.15倍で計算）
+  const physicalMaxCharsUI = Math.max(6, Math.floor(INNER_TEXT_HEIGHT / Math.max(10, fontSize * 1.15)));
   // 実効文字数（物理上限でクランプされた実際の値）
   const effectiveCharsPerLine = Math.min(charsPerLine, physicalMaxCharsUI);
 
@@ -1375,11 +1373,15 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
             </span>
             <button
               onClick={() => {
+                if (charsPerLine >= physicalMaxCharsUI) {
+                  triggerEditNotice(`⚠️ これ以上増やすにはフォントサイズを小さくしてください（物理的な紙の高さに収まりません）`);
+                  return;
+                }
                 const nextVal = Math.min(40, charsPerLine + 1);
                 setTypography(prev => ({ ...prev, charsPerLine: nextVal }));
-                triggerEditNotice(`📏 1行の文字数を ${nextVal}字 に設定しました${nextVal > physicalMaxCharsUI ? `（現在のフォントでは${physicalMaxCharsUI}字が有効）` : '！'}`);
+                triggerEditNotice(`📏 1行の文字数を ${nextVal}字 に設定しました！`);
               }}
-              style={{ backgroundColor: '#1E293B', color: '#FFF', border: '1px solid #4F46E5', borderRadius: '4px', width: '20px', height: '20px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              style={{ backgroundColor: '#1E293B', color: '#FFF', border: '1px solid #4F46E5', borderRadius: '4px', width: '20px', height: '20px', fontSize: '11px', fontWeight: 'bold', cursor: charsPerLine >= physicalMaxCharsUI ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
               +
             </button>
