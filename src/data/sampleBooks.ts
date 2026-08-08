@@ -1770,3 +1770,127 @@ CoCo壱の創業者はマジで神に選ばれし人だと思っている。カ�
 逆に言うと、ここが曖昧なままだと、目の前の選択を全部“なんとなく”で決めることになるから、気づいたら全然違う場所にいる、ということが普通に起こる。
 最初にどれだけ高い目標を設定できるか。そして、それを前提に日々の行動を組み立てられるか。これだけで、数年後に見える景色はまったく変わってくると思うよ。
 `;
+
+export const SAMPLE_TEXT_BUSINESS = `第1章 AI時代を生き抜く「セルフパブリッシング」思考
+
+1.1 誰もが「著者」になれるプラットフォームの誕生
+Web3および生成AIの発展により、従来の出版流通構造は劇的な変革を迎えています。
+
+1.2 なぜ今、個人ブランドとして本を書くべきなのか？
+書籍は、あなたの知見やビジョンを最も体系的かつ高密度に伝えるメディアです。`;
+
+export const SAMPLE_TEXT_NOVEL = `第一章　<ruby>星屑<rt>ほしくず</rt></ruby>の降る夜に
+
+　その夜、空から降り注いでいたのは雨ではなく、輝く言葉の断片だった。
+　<ruby>蒼穹<rt>そうきゅう</rt></ruby>の果てに佇む『銀河図書館』の静寂を破り、古びた真鍮の鐘が低く響き渡る。司書の少女・ルナは、手元のランタンを掲げながら、静かに書架の奥へと足を進めた。
+
+「また、新しい物語が生まれようとしているのね」
+
+　彼女が差し出した指先に、ひとひらの光が舞い降りる。それは遠い昔、地球と呼ばれる惑星で誰かが紡いだ<ruby>詩篇<rt>しへん</rt></ruby>の欠片であった。
+　図書館には、宇宙に存在するあらゆる意思と感情が「本」という形をとって保管されている。何百万光年もの旅を経て届いた記憶の層は、皮装丁の表紙の中で穏やかに脈動していた。
+
+第二章　記憶の<ruby>紡ぎ手<rt>つむぎて</rt></ruby>
+
+　ルナが棚から引き抜いた一冊の羊皮紙。そこには、忘れ去られた都市の灯火と、ある旅人の切ない誓いが刻まれていた。
+　縦書きに並んだ墨文字は、夜の風が吹くたびに淡く青く発光する。
+
+「言葉は、時を超える舟のようなもの。たとえ星が寿命を迎えても、誰かが読んでいる限り、その心は死なない」
+
+　彼女は静かにページをめくった。
+　次の瞬間、図書館の大きな窓から差し込んだ流星群の光が、部屋全体を幻想的な翡翠色へと染め上げていったのだった。`;
+
+export const SAMPLE_BOOKS: BookItem[] = [
+  {
+    id: 'book-wealth-1',
+    title: '超富裕層の幸福論',
+    author: '千代目',
+    genre: 'ビジネス・自己啓発',
+    description: '総資産100億円超の投資家が明かす、お金と幸福のリアル。「本当の豊かさ」を手に入れるための黄金ポートフォリオ。',
+    bookType: 'reflow',
+    readingDirection: 'rtl',
+    cover: DEFAULT_COVER,
+    typography: {
+      ...DEFAULT_TYPOGRAPHY,
+      preset: 'bunko',
+      writingMode: 'vertical-rl',
+      fontFamily: "'Shippori Mincho', serif",
+      fontSize: 17,
+      lineHeight: 2.0,
+      paperTheme: 'bunkobon',
+      fontTheme: 'shippori'
+    },
+    chapters: [
+      { id: 'ch-1', title: '第一章 100億円の資産を築いて見えた景色', content: SAMPLE_TEXT_WEALTH_HAPPINESS }
+    ],
+    price: 1500,
+    salesCount: 15400,
+    rating: 4.95,
+    pageCount: 220,
+    publishedAt: '2026-08-01'
+  },
+  {
+    id: 'book-1',
+    title: '銀河の果ての図書館',
+    author: '新城 葵',
+    genre: 'SF・ファンタジー小説',
+    description: '宇宙の果てに存在する図書館で、失われた人類の言葉と記憶を管理する司書の幻想SF物語。',
+    bookType: 'reflow',
+    readingDirection: 'rtl',
+    cover: {
+      ...DEFAULT_COVER,
+      title: '銀河の果ての図書館',
+      author: '新城 葵',
+      subtitle: '失われた1000年の記憶を紡ぐ、時空を超えた幻想SF長編',
+      catchphrase: '『読書メーター第1位』——全人類が涙した、言葉と記憶を巡る感動の旅路。',
+      genre: 'SF・ファンタジー小説',
+      style: 'watercolor',
+      bgImageUrl: COVER_ART_PRESETS[0].url,
+      badgeText: '★ 本屋大賞ノミネート作品',
+      bandColor: '#F59E0B',
+      bandTextColor: '#111827'
+    },
+    typography: DEFAULT_TYPOGRAPHY,
+    chapters: [
+      { id: 'ch-1', title: '第一章 星屑の降る夜に', content: SAMPLE_TEXT_NOVEL }
+    ],
+    price: 680,
+    salesCount: 1420,
+    rating: 4.8,
+    pageCount: 240,
+    publishedAt: '2026-07-20'
+  },
+  {
+    id: 'book-comic-1',
+    title: 'サイバー・ブレード 零',
+    author: '神楽 忍 (Manga Artist)',
+    genre: 'バトル・SF漫画',
+    description: '西暦2099年、ネオトーキョーを舞台に繰り広げられるサイバーパンク忍者アクションコミック全5P試し読み。',
+    bookType: 'comic',
+    readingDirection: 'rtl',
+    cover: {
+      ...DEFAULT_COVER,
+      title: 'サイバー・ブレード 零',
+      author: '神楽 忍',
+      subtitle: '近未来サイバーパンク忍者バトル開幕！',
+      catchphrase: '★ 月刊コミックアワード 大賞受賞話題作！',
+      genre: '少年・青年コミック',
+      style: 'manga-style',
+      bgImageUrl: COVER_ART_PRESETS[3].url,
+      badgeText: '★ 人気コミック第1巻',
+      bandColor: '#EF4444',
+      bandTextColor: '#FFFFFF'
+    },
+    typography: {
+      ...DEFAULT_TYPOGRAPHY,
+      preset: 'manga',
+      writingMode: 'vertical-rl'
+    },
+    chapters: [],
+    comicPages: SAMPLE_COMIC_PAGES,
+    price: 550,
+    salesCount: 8900,
+    rating: 4.95,
+    pageCount: 192,
+    publishedAt: '2026-07-22'
+  }
+];
