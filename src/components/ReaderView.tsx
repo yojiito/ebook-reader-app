@@ -748,7 +748,10 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
       };
       const jsonStr = JSON.stringify(shareData);
       const compressed = LZString.compressToEncodedURIComponent(jsonStr);
-      const shareUrl = `${window.location.origin}${window.location.pathname}#share=${compressed}`;
+      const origin = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+        ? 'https://ebook-reader-app.vercel.app' 
+        : window.location.origin;
+      const shareUrl = `${origin}${window.location.pathname}#share=${compressed}`;
       
       await navigator.clipboard.writeText(shareUrl);
       triggerEditNotice('🔗 共有用URLをクリップボードにコピーしました！');
