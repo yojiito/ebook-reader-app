@@ -642,9 +642,9 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
   const physicalMaxCharsUI = Math.max(6, Math.floor(INNER_TEXT_HEIGHT / Math.max(10, fontSize * 1.15)));
   const physicalMaxLinesUI = Math.max(4, Math.floor(INNER_TEXT_WIDTH / Math.max(10, fontSize * 1.15)));
   
-  // 実効文字数・行数（物理上限でクランプされた実際の値）
-  const effectiveCharsPerLine = Math.min(charsPerLine, physicalMaxCharsUI);
-  const effectiveLinesPerPage = Math.min(linesPerPage, physicalMaxLinesUI);
+  // 実効文字数・行数（シンプルUIのため、常に画面に収まる最大値を自動適用＝「お任せレイアウト」）
+  const effectiveCharsPerLine = physicalMaxCharsUI;
+  const effectiveLinesPerPage = physicalMaxLinesUI;
 
   const paperTheme: PaperTheme = typography.paperTheme || 'bunkobon';
   const fontTheme: FontTheme = typography.fontTheme || 'shippori';
@@ -1302,295 +1302,126 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
           )}
         </div>
 
-        {/* コントローラー：紙質・書体・文字サイズ・1行文字数・1頁行数 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', backgroundColor: 'rgba(15,23,42,0.9)', padding: '6px 14px', borderRadius: '12px', border: '1px solid rgba(99,102,241,0.4)', flexWrap: 'wrap' }}>
+        {/* コントローラー：KindleライクなシンプルUI */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap', justifyContent: 'flex-end', flex: 1 }}>
           
-          {/* 🎨 1. 紙質テーマ */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <span style={{ fontSize: '11px', fontWeight: '900', color: '#FDE047', display: 'flex', alignItems: 'center', gap: '2px' }}>
-              <BookOpen style={{ width: '13px', height: '13px' }} /> 紙質:
-            </span>
-            <select
-              value={paperTheme}
-              onChange={(e) => setTypography(prev => ({ ...prev, paperTheme: e.target.value as PaperTheme }))}
-              style={{ backgroundColor: '#0F172A', color: '#FDE047', border: '1px solid #4F46E5', borderRadius: '6px', padding: '2px 6px', fontSize: '11px', fontWeight: 'bold', outline: 'none', cursor: 'pointer' }}
-            >
-              <option value="bunkobon">📖 文庫本(生成り)</option>
-              <option value="sepia">📜 セピア(古書)</option>
-              <option value="dark">🌙 夜間(ダーク)</option>
-              <option value="white">☀️ ホワイト</option>
-            </select>
-          </div>
-
-          <div style={{ width: '1px', height: '16px', backgroundColor: 'rgba(255,255,255,0.2)' }} />
-
-          {/* 🔤 2. 書体フォント */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <span style={{ fontSize: '11px', fontWeight: '900', color: '#38BDF8', display: 'flex', alignItems: 'center', gap: '2px' }}>
-              <Type style={{ width: '13px', height: '13px' }} /> 書体:
-            </span>
-            <select
-              value={fontTheme}
-              onChange={(e) => setTypography(prev => ({ ...prev, fontTheme: e.target.value as FontTheme }))}
-              style={{ backgroundColor: '#0F172A', color: '#38BDF8', border: '1px solid #0284C7', borderRadius: '6px', padding: '2px 6px', fontSize: '11px', fontWeight: 'bold', outline: 'none', cursor: 'pointer' }}
-            >
-              <option value="shippori">しっぽり高級明朝</option>
-              <option value="serif">標準明朝体</option>
-              <option value="sans">モダンゴシック</option>
-              <option value="zen">丸ゴシック</option>
-            </select>
-          </div>
-
-          <div style={{ width: '1px', height: '16px', backgroundColor: 'rgba(255,255,255,0.2)' }} />
-
-          {/* 🎯 3. 文字サイズ (pt) 直接変更ボタン */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <span style={{ fontSize: '11px', fontWeight: '900', color: '#F59E0B' }}>大小:</span>
+          {/* 1. フォント切り替え (ゴシック/明朝) */}
+          <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#0F172A', borderRadius: '8px', padding: '4px', border: '1px solid rgba(255,255,255,0.1)' }}>
             <button
-              onClick={() => {
-                const nextSize = Math.max(12, fontSize - 1);
-                setTypography(prev => ({ ...prev, fontSize: nextSize }));
-                triggerEditNotice(`🔍 文字サイズを ${nextSize}pt に変更しました！`);
-              }}
-              style={{ backgroundColor: '#1E293B', color: '#FFF', border: '1px solid #4F46E5', borderRadius: '4px', width: '20px', height: '20px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            >
-              -
-            </button>
-            <span style={{ fontSize: '12px', fontWeight: '900', color: '#FDE047', minWidth: '28px', textAlign: 'center' }}>
-              {fontSize}pt
-            </span>
-            <button
-              onClick={() => {
-                const nextSize = Math.min(36, fontSize + 1);
-                setTypography(prev => ({ ...prev, fontSize: nextSize }));
-                triggerEditNotice(`🔍 文字サイズを ${nextSize}pt に変更しました！`);
-              }}
-              style={{ backgroundColor: '#1E293B', color: '#FFF', border: '1px solid #4F46E5', borderRadius: '4px', width: '20px', height: '20px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            >
-              +
-            </button>
-          </div>
-
-          <div style={{ width: '1px', height: '16px', backgroundColor: 'rgba(255,255,255,0.2)' }} />
-
-          {/* 4. 1行文字数 (字) */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <span style={{ fontSize: '11px', fontWeight: '900', color: '#38BDF8' }}>📏 1行:</span>
-            <button
-              onClick={() => {
-                const nextVal = Math.max(6, charsPerLine - 1);
-                setTypography(prev => ({ ...prev, charsPerLine: nextVal }));
-                triggerEditNotice(`📏 1行の文字数を ${nextVal}字 に再組版しました！`);
-              }}
-              style={{ backgroundColor: '#1E293B', color: '#FFF', border: '1px solid #4F46E5', borderRadius: '4px', width: '20px', height: '20px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            >
-              -
-            </button>
-            <span
-              title={charsPerLine > physicalMaxCharsUI ? `現在のフォントサイズでは、物理的に ${physicalMaxCharsUI} 字が限界です` : ''}
-              style={{ fontSize: '12px', fontWeight: '900', color: '#FDE047', minWidth: '32px', textAlign: 'center', cursor: charsPerLine > physicalMaxCharsUI ? 'help' : 'default' }}
-            >
-              {effectiveCharsPerLine}字
-            </span>
-            <button
-              onClick={() => {
-                if (charsPerLine >= physicalMaxCharsUI) {
-                  triggerEditNotice(`⚠️ これ以上増やすにはフォントサイズを小さくしてください（物理的な紙の高さに収まりません）`);
-                  return;
-                }
-                const nextVal = Math.min(40, charsPerLine + 1);
-                setTypography(prev => ({ ...prev, charsPerLine: nextVal }));
-                triggerEditNotice(`📏 1行の文字数を ${nextVal}字 に設定しました！`);
-              }}
-              style={{ backgroundColor: '#1E293B', color: '#FFF', border: '1px solid #4F46E5', borderRadius: '4px', width: '20px', height: '20px', fontSize: '11px', fontWeight: 'bold', cursor: charsPerLine >= physicalMaxCharsUI ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            >
-              +
-            </button>
-          </div>
-
-          <div style={{ width: '1px', height: '16px', backgroundColor: 'rgba(255,255,255,0.2)' }} />
-
-          {/* 5. 1頁行数 (行) */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <span style={{ fontSize: '11px', fontWeight: '900', color: '#38BDF8' }}>📄 1頁:</span>
-            <button
-              onClick={() => setTypography(prev => ({ ...prev, linesPerPage: Math.max(5, linesPerPage - 1) }))}
-              style={{ backgroundColor: '#1E293B', color: '#FFF', border: '1px solid #4F46E5', borderRadius: '4px', width: '20px', height: '20px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            >
-              -
-            </button>
-            <span 
-              title={linesPerPage > physicalMaxLinesUI ? `画面幅の限界により、実効表示は ${physicalMaxLinesUI} 行に制限されています` : ''}
-              style={{ fontSize: '12px', fontWeight: '900', color: '#FDE047', minWidth: '32px', textAlign: 'center', cursor: linesPerPage > physicalMaxLinesUI ? 'help' : 'default' }}
-            >
-              {effectiveLinesPerPage}行
-            </span>
-            <button
-              onClick={() => {
-                if (linesPerPage >= physicalMaxLinesUI) {
-                  triggerEditNotice(`⚠️ これ以上増やすとコンテナ幅（${Math.floor(INNER_TEXT_WIDTH)}px）を物理的に超えるため、実効行数は上がりません`);
-                }
-                setTypography(prev => ({ ...prev, linesPerPage: Math.min(40, linesPerPage + 1) }));
-              }}
-              style={{ backgroundColor: '#1E293B', color: '#FFF', border: '1px solid #4F46E5', borderRadius: '4px', width: '20px', height: '20px', fontSize: '11px', fontWeight: 'bold', cursor: linesPerPage >= physicalMaxLinesUI ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            >
-              +
-            </button>
-          </div>
-
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-          
-          {/* 半角ツメ ON/OFF */}
-          <button
-            onClick={() => setIsHalfWidthPacking(!isHalfWidthPacking)}
-            style={{
-              padding: '6px 10px',
-              borderRadius: '8px',
-              backgroundColor: isHalfWidthPacking ? '#065F46' : '#1E293B',
-              color: isHalfWidthPacking ? '#34D399' : '#94A3B8',
-              border: isHalfWidthPacking ? '1px solid #059669' : '1px solid rgba(148,163,184,0.4)',
-              fontSize: '11px',
-              fontWeight: '900',
-              cursor: 'pointer'
-            }}
-          >
-            {isHalfWidthPacking ? '🔤 「」ツメ: ON' : '🔤 「」ツメ: OFF'}
-          </button>
-
-          {!isSharedMode && (
-            <button
-              onClick={handleCreateShareLink}
-              disabled={shareLinkLoading}
+              onClick={() => setTypography(prev => ({ ...prev, fontTheme: 'sans' }))}
               style={{
-                padding: '6px 12px',
-                backgroundColor: shareLinkLoading ? '#64748B' : '#0284C7',
-                color: '#FFF',
-                border: 'none',
-                borderRadius: '8px',
-                fontSize: '11px',
-                fontWeight: '900',
-                cursor: shareLinkLoading ? 'wait' : 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px'
+                padding: '6px 16px', borderRadius: '6px', border: 'none', cursor: 'pointer',
+                backgroundColor: fontTheme === 'sans' ? '#38BDF8' : 'transparent',
+                color: fontTheme === 'sans' ? '#0F172A' : '#94A3B8',
+                fontWeight: 'bold', fontSize: '12px'
               }}
-              title="この状態のリーダーをプレビューできる共有リンク（URL）をコピー"
             >
-              <Share2 style={{ width: '14px', height: '14px' }} />
-              {shareLinkLoading ? '圧縮中...' : '🔗 共有URLをコピー'}
+              ゴシック
             </button>
-          )}
+            <button
+              onClick={() => setTypography(prev => ({ ...prev, fontTheme: 'shippori' }))}
+              style={{
+                padding: '6px 16px', borderRadius: '6px', border: 'none', cursor: 'pointer',
+                backgroundColor: fontTheme !== 'sans' ? '#38BDF8' : 'transparent',
+                color: fontTheme !== 'sans' ? '#0F172A' : '#94A3B8',
+                fontWeight: 'bold', fontSize: '12px'
+              }}
+            >
+              明朝
+            </button>
+          </div>
 
-          {/* 自動補正 ON/OFF */}
-          <button
-            onClick={() => setIsSmartAutoFlow(!isSmartAutoFlow)}
-            style={{
-              padding: '6px 10px',
-              borderRadius: '8px',
-              backgroundColor: isSmartAutoFlow ? '#166534' : '#1E293B',
-              color: isSmartAutoFlow ? '#4ADE80' : '#94A3B8',
-              border: isSmartAutoFlow ? '1px solid #22C55E' : '1px solid rgba(148,163,184,0.4)',
-              fontSize: '11px',
-              fontWeight: '900',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '3px'
-            }}
-          >
-            <Wand2 style={{ width: '13px', height: '13px' }} />
-            {isSmartAutoFlow ? '✨ 自動補正: ON' : '✨ 自動補正: OFF'}
-          </button>
+          {/* 2. 文字サイズ */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', backgroundColor: '#0F172A', borderRadius: '8px', padding: '4px 12px', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <span style={{ fontSize: '11px', color: '#94A3B8', fontWeight: 'bold' }}>サイズ</span>
+            <button
+              onClick={() => setTypography(prev => ({ ...prev, fontSize: Math.max(12, fontSize - 1) }))}
+              style={{ background: 'transparent', border: 'none', color: '#FFF', fontSize: '16px', cursor: 'pointer' }}
+            >
+              A-
+            </button>
+            <input 
+              type="range" 
+              min="12" max="36" 
+              value={fontSize} 
+              onChange={(e) => setTypography(prev => ({ ...prev, fontSize: parseInt(e.target.value) }))}
+              style={{ width: '80px', cursor: 'pointer' }}
+            />
+            <button
+              onClick={() => setTypography(prev => ({ ...prev, fontSize: Math.min(36, fontSize + 1) }))}
+              style={{ background: 'transparent', border: 'none', color: '#FFF', fontSize: '20px', fontWeight: 'bold', cursor: 'pointer' }}
+            >
+              A+
+            </button>
+          </div>
 
-          {/* 章扉 / 流し見出し */}
-          <button
-            onClick={toggleHeadingStyle}
-            style={{
-              padding: '6px 10px',
-              borderRadius: '8px',
-              backgroundColor: headingStyle === 'tobira' ? '#854D0E' : '#1E293B',
-              color: headingStyle === 'tobira' ? '#FDE047' : '#94A3B8',
-              border: '1px solid rgba(245,158,11,0.5)',
-              fontSize: '11px',
-              fontWeight: '900',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '3px'
-            }}
-          >
-            {headingStyle === 'tobira' ? <BookOpenCheck style={{ width: '13px', height: '13px' }} /> : <FileText style={{ width: '13px', height: '13px' }} />}
-            {headingStyle === 'tobira' ? '📜 豪華章扉' : '📝 流し見出し'}
-          </button>
+          {/* 3. テーマカラー */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: '#0F172A', borderRadius: '8px', padding: '4px 12px', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <span style={{ fontSize: '11px', color: '#94A3B8', fontWeight: 'bold' }}>テーマ</span>
+            {([
+              { id: 'white', color: '#FFFFFF' },
+              { id: 'bunkobon', color: '#FBF0D9' },
+              { id: 'sepia', color: '#F5E6C8' },
+              { id: 'dark', color: '#0F172A' }
+            ] as const).map(theme => (
+              <button
+                key={theme.id}
+                onClick={() => setTypography(prev => ({ ...prev, paperTheme: theme.id }))}
+                style={{
+                  width: '24px', height: '24px', borderRadius: '50%',
+                  backgroundColor: theme.color,
+                  border: paperTheme === theme.id ? '2px solid #38BDF8' : '1px solid #475569',
+                  cursor: 'pointer'
+                }}
+                title={theme.id}
+              />
+            ))}
+          </div>
 
-          {/* 右開き / 左開き */}
-          <button
-            onClick={() => setPageDirection(prev => prev === 'rtl' ? 'ltr' : 'rtl')}
-            style={{ padding: '6px 10px', borderRadius: '8px', backgroundColor: '#312E81', color: '#FFF', fontSize: '11px', fontWeight: 'bold', border: 'none', cursor: 'pointer' }}
-          >
-            {pageDirection === 'rtl' ? '📖 右開き' : '📖 左開き'}
-          </button>
+          {/* ユーティリティボタン */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <button
+              onClick={() => setIsTwoPageSpread(!isTwoPageSpread)}
+              style={{ padding: '6px 10px', borderRadius: '8px', backgroundColor: '#334155', color: '#FFF', fontSize: '11px', fontWeight: 'bold', border: 'none', cursor: 'pointer' }}
+            >
+              {isTwoPageSpread ? '📑 見開き' : '📄 単ページ'}
+            </button>
 
-          {/* 見開き / 単P */}
-          <button
-            onClick={() => setIsTwoPageSpread(!isTwoPageSpread)}
-            style={{ padding: '6px 10px', borderRadius: '8px', backgroundColor: '#1E1B4B', color: '#F59E0B', fontSize: '11px', fontWeight: 'bold', border: '1px solid rgba(245,158,11,0.5)', cursor: 'pointer' }}
-          >
-            {isTwoPageSpread ? '見開き2P' : '単P'}
-          </button>
+            <button
+              onClick={() => exportBookToEpub(bookTitle, authorName, liveEditingText)}
+              style={{ padding: '6px 10px', borderRadius: '8px', backgroundColor: '#059669', color: '#FFFFFF', border: 'none', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '3px' }}
+            >
+              <Download style={{ width: '13px', height: '13px', color: '#FDE047' }} />
+              EPUB保存
+            </button>
 
-          {/* 📥 EPUB3エクスポートボタン */}
-          <button
-            onClick={() => exportBookToEpub(bookTitle, authorName, liveEditingText)}
-            style={{
-              padding: '6px 10px',
-              borderRadius: '8px',
-              backgroundColor: '#059669',
-              color: '#FFFFFF',
-              border: 'none',
-              fontSize: '11px',
-              fontWeight: '900',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '3px',
-              boxShadow: '0 4px 10px rgba(5, 150, 105, 0.4)'
-            }}
-          >
-            <Download style={{ width: '13px', height: '13px', color: '#FDE047' }} />
-            EPUB3保存
-          </button>
+            <button
+              onClick={() => setShowTocSidebar(!showTocSidebar)}
+              style={{ padding: '6px 10px', borderRadius: '8px', backgroundColor: showTocSidebar ? '#F59E0B' : '#1E1B4B', color: showTocSidebar ? '#020617' : '#A5B4FC', border: '1px solid rgba(245,158,11,0.5)', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+            >
+              <ListTree style={{ width: '13px', height: '13px', marginRight: '3px' }} />
+              目次
+            </button>
 
-          {/* ✏️【編集モード切替＆該当ページドンピシャ100%スクロールボタン】 */}
-          <button
-            onClick={toggleLiveEditAndScrollToCurrentPage}
-            style={{
-              padding: '6px 10px',
-              borderRadius: '8px',
-              backgroundColor: isLiveEditMode ? '#0284C7' : '#1E293B',
-              color: isLiveEditMode ? '#FFFFFF' : '#38BDF8',
-              border: isLiveEditMode ? '1px solid #38BDF8' : '1px solid rgba(56,189,248,0.4)',
-              fontSize: '11px',
-              fontWeight: '900',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px'
-            }}
-          >
-            <Edit3 style={{ width: '13px', height: '13px' }} />
-            {isLiveEditMode ? '編集モード中' : `P.${isTwoPageSpread ? (currentPageIndex * 2) + 1 : currentPageIndex + 1} 編集`}
-          </button>
+            {/* 編集モード */}
+            <button
+              onClick={toggleLiveEditAndScrollToCurrentPage}
+              style={{ padding: '6px 10px', borderRadius: '8px', backgroundColor: isLiveEditMode ? '#0284C7' : '#1E293B', color: isLiveEditMode ? '#FFFFFF' : '#38BDF8', border: isLiveEditMode ? '1px solid #38BDF8' : '1px solid rgba(56,189,248,0.4)', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+            >
+              <Edit3 style={{ width: '13px', height: '13px' }} />
+              {isLiveEditMode ? '編集モード' : '編集する'}
+            </button>
 
-          <button
-            onClick={() => setShowTocSidebar(!showTocSidebar)}
-            style={{ padding: '6px 10px', borderRadius: '8px', backgroundColor: showTocSidebar ? '#F59E0B' : '#1E1B4B', color: showTocSidebar ? '#020617' : '#A5B4FC', border: '1px solid rgba(245,158,11,0.5)', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer' }}
-          >
-            <ListTree style={{ width: '13px', height: '13px', display: 'inline', marginRight: '3px' }} />
-            目次 ({computedTocItems.length})
-          </button>
+            {!isSharedMode && (
+              <button
+                onClick={handleCreateShareLink}
+                disabled={shareLinkLoading}
+                style={{ padding: '6px 10px', backgroundColor: shareLinkLoading ? '#64748B' : '#0284C7', color: '#FFF', border: 'none', borderRadius: '8px', fontSize: '11px', fontWeight: 'bold', cursor: shareLinkLoading ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+              >
+                <Share2 style={{ width: '12px', height: '12px' }} /> 共有
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
