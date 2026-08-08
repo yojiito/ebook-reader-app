@@ -617,8 +617,10 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
   const linesPerPage = typography.linesPerPage || 12;
   const headingStyle = typography.headingStyle || 'tobira';
 
-  const FIXED_PAPER_HEIGHT = 440;
-  const INNER_TEXT_HEIGHT = 376;
+  // 1行の文字数とフォントサイズから、必要な高さを動的に計算する（letter-spacing 0.04emを考慮）
+  const INNER_TEXT_HEIGHT = charsPerLine * (fontSize * 1.05);
+  // テキスト領域に上下のパディング（24px * 2 = 48px）を足したものが紙の高さ（最低440pxは確保）
+  const FIXED_PAPER_HEIGHT = Math.max(440, INNER_TEXT_HEIGHT + 48);
 
   // 物理上限：UIボタンの上限に使用し、表示値もこの範囲内に収める
   const physicalMaxCharsUI = Math.max(6, Math.floor(INNER_TEXT_HEIGHT / Math.max(10, fontSize)));
@@ -1719,7 +1721,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
         
         {/* 目次サイドバー */}
         {showTocSidebar && (
-          <div className="glass-panel" style={{ width: '300px', height: '560px', padding: '18px', display: 'flex', flexDirection: 'column', backgroundColor: '#0B132B', border: '1px solid #4F46E5' }}>
+          <div className="glass-panel" style={{ width: '300px', minHeight: '560px', padding: '18px', display: 'flex', flexDirection: 'column', backgroundColor: '#0B132B', border: '1px solid #4F46E5' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', borderBottom: '1px solid #334155', paddingBottom: '8px' }}>
               <h3 style={{ fontSize: '14px', fontWeight: '900', color: '#F8FAFC', display: 'flex', alignItems: 'center', gap: '6px', margin: 0 }}>
                 <ListTree style={{ width: '16px', height: '16px', color: '#F59E0B' }} />
@@ -1800,7 +1802,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
           style={{
             width: '100%',
             maxWidth: isTwoPageSpread ? '920px' : '480px',
-            height: '560px',
+            minHeight: '560px',
             borderRadius: '20px',
             padding: '24px 30px',
             boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
