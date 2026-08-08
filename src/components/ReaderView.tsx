@@ -1387,10 +1387,10 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
               -
             </button>
             <span
-              title={charsPerLine > physicalMaxCharsUI ? `現在のフォントサイズでの物理上限は${physicalMaxCharsUI}字。フォントサイズを小さくすると有効になります` : ''}
-              style={{ fontSize: '12px', fontWeight: '900', color: charsPerLine > physicalMaxCharsUI ? '#F87171' : '#FDE047', minWidth: '32px', textAlign: 'center', cursor: charsPerLine > physicalMaxCharsUI ? 'help' : 'default' }}
+              title={charsPerLine > physicalMaxCharsUI ? `現在のフォントサイズでは、物理的に ${physicalMaxCharsUI} 字が限界です` : ''}
+              style={{ fontSize: '12px', fontWeight: '900', color: '#FDE047', minWidth: '32px', textAlign: 'center', cursor: charsPerLine > physicalMaxCharsUI ? 'help' : 'default' }}
             >
-              {charsPerLine}字{charsPerLine > physicalMaxCharsUI ? `→${physicalMaxCharsUI}` : ''}
+              {effectiveCharsPerLine}字
             </span>
             <button
               onClick={() => {
@@ -1420,10 +1420,10 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
               -
             </button>
             <span 
-              title={linesPerPage > physicalMaxLinesUI ? `幅の物理限界(${Math.floor(INNER_TEXT_WIDTH)}px)のため、実効表示は ${physicalMaxLinesUI} 行に制限されています` : ''}
-              style={{ fontSize: '12px', fontWeight: '900', color: linesPerPage > physicalMaxLinesUI ? '#F87171' : '#FDE047', minWidth: '32px', textAlign: 'center', cursor: linesPerPage > physicalMaxLinesUI ? 'help' : 'default' }}
+              title={linesPerPage > physicalMaxLinesUI ? `画面幅の限界により、実効表示は ${physicalMaxLinesUI} 行に制限されています` : ''}
+              style={{ fontSize: '12px', fontWeight: '900', color: '#FDE047', minWidth: '32px', textAlign: 'center', cursor: linesPerPage > physicalMaxLinesUI ? 'help' : 'default' }}
             >
-              {linesPerPage}{linesPerPage > physicalMaxLinesUI ? `👉${physicalMaxLinesUI}` : ''}行
+              {effectiveLinesPerPage}行
             </span>
             <button
               onClick={() => {
